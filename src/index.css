@@ -1,0 +1,301 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   VOICE   plain, direct, first person. Lots of air.
+   IDEA    a developer's notebook: numbered sections, a status
+           readout, a blinking cursor. Nothing decorative.
+   COLOUR  pure white and black, one signal-orange accent used sparingly.
+   TYPE    Inter Tight for everything (bold, tight headlines),
+           Geist Mono for small technical details.
+   LAYOUT  one column up to 1040px. Numbered header, content below.
+------------------------------------------------------------------- */
+
+/* 1. Colour tokens. Light is the default; the two dark blocks only
+      redefine values, so the page follows the visitor's system theme.
+      --accent is for marks and large text; --accent-text is the darker
+      shade that stays readable at body size on white. */
+:root {
+  --bg: #FFFFFF;
+  --raise: #F7F7F7;
+  --ink: #000000;
+  --soft: #474747;
+  --mute: #737373;
+  --line: #E5E5E5;
+  --accent: #FF4F00;
+  --accent-text: #D63F00;
+  --ok: #13853E;
+  --tint: rgba(255, 79, 0, 0.1);
+  --shade: rgba(0, 0, 0, 0.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000;
+    --raise: #0E0E0E;
+    --ink: #F5F5F5;
+    --soft: #A8A8A8;
+    --mute: #7A7A7A;
+    --line: #222222;
+    --accent: #FF5A1F;
+    --accent-text: #FF6A33;
+    --ok: #3DDC84;
+    --tint: rgba(255, 90, 31, 0.16);
+    --shade: rgba(0, 0, 0, 0.7);
+    --buddy-glow: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --raise: #0E0E0E;
+  --ink: #F5F5F5;
+  --soft: #A8A8A8;
+  --mute: #7A7A7A;
+  --line: #222222;
+  --accent: #FF5A1F;
+  --accent-text: #FF6A33;
+  --ok: #3DDC84;
+  --tint: rgba(255, 90, 31, 0.16);
+  --shade: rgba(0, 0, 0, 0.7);
+  --buddy-glow: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* 2. Hand the tokens to Tailwind: bg-bg, text-ink, border-line, text-accent-text... */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-raise: var(--raise);
+  --color-ink: var(--ink);
+  --color-soft: var(--soft);
+  --color-mute: var(--mute);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-ok: var(--ok);
+  --color-tint: var(--tint);
+}
+@theme {
+  --font-sans: "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --ease-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* 3. Base */
+@layer base {
+  html {
+    overflow-x: clip;
+    scroll-behavior: smooth;
+    scroll-padding-top: 24px;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--accent);
+    color: #000;
+  }
+  main {
+    counter-reset: section;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  button {
+    cursor: pointer;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+/* 4. Project utilities */
+/* Page column, with a side gutter that also clears a phone's side bar. */
+@utility wrap {
+  max-width: 1040px;
+  margin-inline: auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+  @media (min-width: 768px) {
+    padding-left: max(32px, env(safe-area-inset-left, 0px));
+    padding-right: max(32px, env(safe-area-inset-right, 0px));
+  }
+}
+/* Underlined text link with a soft line that darkens on hover. */
+@utility tlink {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  transition: text-decoration-color 0.2s, color 0.2s;
+  &:hover {
+    text-decoration-color: var(--accent);
+  }
+}
+/* Section number before each <h2> in a Row: 01, 02, 03... in page order. */
+@utility sec-num {
+  counter-increment: section;
+  &::before {
+    content: counter(section, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--accent-text);
+  }
+}
+/* Blinking block cursor (stays solid for visitors who ask for less motion). */
+@utility cursor-block {
+  display: inline-block;
+  width: 0.42em;
+  height: 0.74em;
+  margin-left: 0.1em;
+  background: var(--accent);
+  animation: blink 1.1s steps(1) infinite;
+}
+/* Roads behind the Tubig-Go map illustration. */
+@utility map-art {
+  background:
+    linear-gradient(90deg, transparent 31%, var(--line) 31% 34.5%, transparent 34.5%),
+    linear-gradient(0deg, transparent 54%, var(--line) 54% 57.5%, transparent 57.5%),
+    linear-gradient(118deg, transparent 63%, var(--line) 63% 65.5%, transparent 65.5%),
+    linear-gradient(0deg, transparent 22%, var(--line) 22% 23.6%, transparent 23.6%),
+    var(--raise);
+}
+
+/* 5. Placeholders (see src/components/Ph.tsx).
+      Unlayered on purpose so they win over utilities like tlink. */
+.ph {
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.24em;
+  text-decoration-color: var(--accent);
+  cursor: help;
+}
+html.ph-loud .ph {
+  background: var(--tint);
+  box-shadow: 0 0 0 3px var(--tint);
+  border-radius: 2px;
+}
+.ph.flash {
+  animation: flash 1s ease 2;
+}
+@keyframes flash {
+  50% {
+    outline: 2px solid currentColor;
+    outline-offset: 5px;
+  }
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes pulse-ring {
+  from {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+/* Theme-specific logos (see Thumb in src/components/Scenes.tsx). */
+.logo-dark {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-dark {
+    display: block;
+  }
+  :root:not([data-theme="light"]) .logo-light {
+    display: none;
+  }
+}
+:root[data-theme="dark"] .logo-dark {
+  display: block;
+}
+:root[data-theme="dark"] .logo-light {
+  display: none;
+}
+
+/* 6. Mini Jazer (src/buddy). The layer sits at the page's top-left so he
+      scrolls with the content; he only shows once thrown out of the photo. */
+.buddy-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+.buddy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  will-change: transform;
+}
+.buddy-layer.is-out .buddy {
+  display: block;
+}
+.buddy-inner {
+  width: 100%;
+  height: 100%;
+}
+.buddy-sprite {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  filter: var(--buddy-glow, none);
+}
+.buddy .buddy-sprite {
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.buddy .buddy-sprite.is-grabbing {
+  cursor: grabbing;
+}
+.buddy-bubble {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(calc(-50% + var(--shift, 0px)));
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--bg);
+  font: 500 11px/1.3 var(--font-mono);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.buddy-bubble.is-on {
+  opacity: 1;
+}
